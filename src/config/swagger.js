@@ -40,8 +40,15 @@ const options = {
 
 const specs = swaggerJsDoc(options);
 
+const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css";
+const JS_URL_BUNDLE = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js";
+const JS_URL_STANDALONE = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js";
+
 const setupSwagger = (app) => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+    customCssUrl: CSS_URL,
+    customJs: [JS_URL_BUNDLE, JS_URL_STANDALONE]
+  }));
 };
 
 module.exports = setupSwagger;
