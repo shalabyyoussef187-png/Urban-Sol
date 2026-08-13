@@ -1,5 +1,6 @@
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const path = require('path');
 
 const options = {
   definition: {
@@ -10,6 +11,10 @@ const options = {
       description: 'API documentation for UrbunSol Backend',
     },
     servers: [
+      {
+        url: 'https://urban-sol-olive.vercel.app',
+        description: 'Production server',
+      },
       {
         url: 'http://localhost:5000',
         description: 'Development server',
@@ -30,7 +35,7 @@ const options = {
       },
     ],
   },
-  apis: ['./src/routes/*.js'], // Path to the API docs
+  apis: [path.join(__dirname, '../routes/*.js')], // Fixed path for Vercel
 };
 
 const specs = swaggerJsDoc(options);
