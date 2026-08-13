@@ -32,6 +32,7 @@ const createProduct = async (req, res) => {
   try {
     const { name, description, price, stock, categoryId } = req.body;
     let imageUrl = null;
+    let imageFileId = null;
 
     if (req.file) {
       const result = await imagekit.upload({
@@ -40,6 +41,7 @@ const createProduct = async (req, res) => {
         folder: '/products'
       });
       imageUrl = result.url;
+      imageFileId = result.fileId;
     }
     
     const product = await prisma.product.create({
@@ -49,7 +51,8 @@ const createProduct = async (req, res) => {
         price: parseFloat(price), 
         stock: parseInt(stock, 10), 
         categoryId, 
-        imageUrl 
+        imageUrl,
+        imageFileId
       },
     });
     
@@ -64,20 +67,37 @@ const updateProduct = async (req, res) => {
     const { id } = req.params;
     const { name, description, price, stock, categoryId } = req.body;
     
+    const existingProduct = await prisma.product.findUnique({ where: { id } });
+    if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
+
     let imageUrl = undefined;
+    let imageFileId = undefined;
+    
     if (req.file) {
+      if (existingProduct.imageFileId) {
+        try {
+          await imagekit.deleteFile(existingProduct.imageFileId);
+        } catch (imgError) {
+          console.error("Error deleting old image:", imgError);
+        }
+      }
+      
       const result = await imagekit.upload({
         file: req.file.buffer, // required
         fileName: req.file.originalname, // required
         folder: '/products'
       });
       imageUrl = result.url;
+      imageFileId = result.fileId;
     }
     
     const dataToUpdate = { name, description, categoryId };
     if (price) dataToUpdate.price = parseFloat(price);
     if (stock) dataToUpdate.stock = parseInt(stock, 10);
-    if (imageUrl) dataToUpdate.imageUrl = imageUrl;
+    if (imageUrl) {
+      dataToUpdate.imageUrl = imageUrl;
+      dataToUpdate.imageFileId = imageFileId;
+    }
 
     const product = await prisma.product.update({
       where: { id },
@@ -93,6 +113,17 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    const existingProduct = await prisma.product.findUnique({ where: { id } });
+    if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
+    
+    if (existingProduct.imageFileId) {
+      try {
+        await imagekit.deleteFile(existingProduct.imageFileId);
+      } catch (imgError) {
+        console.error("Error deleting image from imagekit:", imgError);
+      }
+    }
+    
     await prisma.product.delete({ where: { id } });
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
