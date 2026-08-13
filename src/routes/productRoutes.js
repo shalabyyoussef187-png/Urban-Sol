@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
 const authMiddleware = require('../middleware/authMiddleware');
+const multer = require('multer');
+
+// Configure multer to use memory storage
+const upload = multer({ storage: multer.memoryStorage() });
 
 /**
  * @swagger
@@ -46,7 +50,7 @@ router.get('/:id', productController.getProductById);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -60,13 +64,16 @@ router.get('/:id', productController.getProductById);
  *                 type: number
  *               categoryId:
  *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Product created
  *       401:
  *         description: Unauthorized
  */
-router.post('/', authMiddleware, productController.createProduct);
+router.post('/', authMiddleware, upload.single('image'), productController.createProduct);
 
 /**
  * @swagger
@@ -85,7 +92,7 @@ router.post('/', authMiddleware, productController.createProduct);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -99,13 +106,16 @@ router.post('/', authMiddleware, productController.createProduct);
  *                 type: number
  *               categoryId:
  *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Product updated
  *       401:
  *         description: Unauthorized
  */
-router.put('/:id', authMiddleware, productController.updateProduct);
+router.put('/:id', authMiddleware, upload.single('image'), productController.updateProduct);
 
 /**
  * @swagger
