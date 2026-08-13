@@ -5,7 +5,7 @@ const pusher = require('../utils/pusher');
 const createOrder = async (req, res) => {
   try {
     const { customer_name, customer_email, items } = req.body;
-    // items should be an array of { product_id, quantity }
+    // items should be an array of { product_id, quantity
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'Order must contain at least one item' });
